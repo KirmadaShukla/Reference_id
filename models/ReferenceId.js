@@ -7,6 +7,10 @@ const referenceIdSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
+  dateOfBirth: {
+    type: String,
+    required: false
+  },
   createdAt: {
     type: Date,
     default: Date.now

@@ -32,6 +32,8 @@ const generate19DigitReferenceId = () => {
 // API endpoint to generate and save reference ID
 app.post('/api/generate-reference-id', async (req, res) => {
   try {
+    const { dateOfBirth } = req.body; // Extract date of birth from request body
+    
     // Generate a unique reference ID
     let referenceId;
     let isUnique = false;
@@ -57,15 +59,51 @@ app.post('/api/generate-reference-id', async (req, res) => {
       throw new Error('Unable to generate a unique reference ID after maximum attempts');
     }
     
-    // Save the reference ID to the database
-    const newReferenceId = new ReferenceId({ referenceId });
+    // Save the reference ID and date of birth to the database
+    const newReferenceId = new ReferenceId({ 
+      referenceId,
+      dateOfBirth // Include date of birth in the document
+    });
     await newReferenceId.save();
     
-    // Return the generated reference ID
-    res.json({ referenceId });
+    // Return the generated reference ID and date of birth
+    res.json({ 
+      referenceId,
+      dateOfBirth
+    });
   } catch (error) {
     console.error('Error generating reference ID:', error);
     res.status(500).json({ error: 'Failed to generate reference ID' });
+  }
+});
+
+// API endpoint to submit reference ID with date of birth
+app.post('/api/submit-reference-id', async (req, res) => {
+  try {
+    const { referenceId, dateOfBirth } = req.body;
+    
+    // Validate input
+    if (!referenceId || !dateOfBirth) {
+      return res.status(400).json({ error: 'Reference ID and Date of Birth are required' });
+    }
+    
+    // Check if the reference ID exists in the database
+    const existingReferenceId = await ReferenceId.findOne({ referenceId });
+    
+    if (!existingReferenceId) {
+      return res.status(404).json({ error: 'Reference ID not found' });
+    }
+    
+    // Update the reference ID record with submission info (if needed)
+    // For now, we'll just return a success response
+    res.json({ 
+      message: 'Reference ID submitted successfully',
+      referenceId,
+      dateOfBirth
+    });
+  } catch (error) {
+    console.error('Error submitting reference ID:', error);
+    res.status(500).json({ error: 'Failed to submit reference ID' });
   }
 });
 
