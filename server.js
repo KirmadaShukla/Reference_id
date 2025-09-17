@@ -30,20 +30,20 @@ const generate19DigitReferenceId = () => {
 };
 
 // API endpoint to generate a reference ID (without saving to database)
-// app.post('/api/generate-reference-id', async (req, res) => {
-//   try {
-//     // Generate a reference ID
-//     const referenceId = generate19DigitReferenceId();
+app.post('/api/generate-reference-id', async (req, res) => {
+  try {
+    // Generate a reference ID
+    const referenceId = generate19DigitReferenceId();
     
-//     // Return the generated reference ID
-//     res.json({ 
-//       referenceId
-//     });
-//   } catch (error) {
-//     console.error('Error generating reference ID:', error);
-//     res.status(500).json({ error: 'Failed to generate reference ID' });
-//   }
-// });
+    // Return the generated reference ID
+    res.json({ 
+      referenceId
+    });
+  } catch (error) {
+    console.error('Error generating reference ID:', error);
+    res.status(500).json({ error: 'Failed to generate reference ID' });
+  }
+});
 
 // API endpoint to submit reference ID with date of birth (create new document)
 app.post('/api/submit-reference-id', async (req, res) => {
@@ -53,6 +53,12 @@ app.post('/api/submit-reference-id', async (req, res) => {
     // Validate input
     if (!referenceId || !dateOfBirth) {
       return res.status(400).json({ error: 'Reference ID and Date of Birth are required' });
+    }
+    
+    // Validate that referenceId is exactly 19 alphanumeric characters
+    const referenceIdRegex = /^[a-zA-Z0-9]{19}$/;
+    if (!referenceIdRegex.test(referenceId)) {
+      return res.status(400).json({ error: 'Reference ID must be exactly 19 alphanumeric characters' });
     }
     
     // Create a new document in the collection
