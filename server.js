@@ -29,55 +29,23 @@ const generate19DigitReferenceId = () => {
   return randomBigInt.toString();
 };
 
-// API endpoint to generate and save reference ID
-app.post('/api/generate-reference-id', async (req, res) => {
-  try {
-    const { dateOfBirth } = req.body; // Extract date of birth from request body
+// API endpoint to generate a reference ID (without saving to database)
+// app.post('/api/generate-reference-id', async (req, res) => {
+//   try {
+//     // Generate a reference ID
+//     const referenceId = generate19DigitReferenceId();
     
-    // Generate a unique reference ID
-    let referenceId;
-    let isUnique = false;
-    let attempts = 0;
-    const maxAttempts = 10;
-    
-    // Try to generate a unique ID (with a maximum of 10 attempts)
-    while (!isUnique && attempts < maxAttempts) {
-      referenceId = generate19DigitReferenceId();
-      
-      // Check if this ID already exists in the database
-      const existing = await ReferenceId.findOne({ referenceId });
-      
-      if (!existing) {
-        isUnique = true;
-      }
-      
-      attempts++;
-    }
-    
-    // If we couldn't generate a unique ID after maxAttempts, throw an error
-    if (!isUnique) {
-      throw new Error('Unable to generate a unique reference ID after maximum attempts');
-    }
-    
-    // Save the reference ID and date of birth to the database
-    const newReferenceId = new ReferenceId({ 
-      referenceId,
-      dateOfBirth // Include date of birth in the document
-    });
-    await newReferenceId.save();
-    
-    // Return the generated reference ID and date of birth
-    res.json({ 
-      referenceId,
-      dateOfBirth
-    });
-  } catch (error) {
-    console.error('Error generating reference ID:', error);
-    res.status(500).json({ error: 'Failed to generate reference ID' });
-  }
-});
+//     // Return the generated reference ID
+//     res.json({ 
+//       referenceId
+//     });
+//   } catch (error) {
+//     console.error('Error generating reference ID:', error);
+//     res.status(500).json({ error: 'Failed to generate reference ID' });
+//   }
+// });
 
-// API endpoint to submit reference ID with date of birth
+// API endpoint to submit reference ID with date of birth (create new document)
 app.post('/api/submit-reference-id', async (req, res) => {
   try {
     const { referenceId, dateOfBirth } = req.body;
@@ -87,15 +55,14 @@ app.post('/api/submit-reference-id', async (req, res) => {
       return res.status(400).json({ error: 'Reference ID and Date of Birth are required' });
     }
     
-    // Check if the reference ID exists in the database
-    const existingReferenceId = await ReferenceId.findOne({ referenceId });
+    // Create a new document in the collection
+    const newReferenceId = new ReferenceId({ 
+      referenceId,
+      dateOfBirth
+    });
+    await newReferenceId.save();
     
-    if (!existingReferenceId) {
-      return res.status(404).json({ error: 'Reference ID not found' });
-    }
-    
-    // Update the reference ID record with submission info (if needed)
-    // For now, we'll just return a success response
+    // Return success response
     res.json({ 
       message: 'Reference ID submitted successfully',
       referenceId,
